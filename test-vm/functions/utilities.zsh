@@ -187,48 +187,6 @@ function segmentShouldBeJoined() {
   fi
 }
 
-# Helper function - added by Jeremy Sarda
-# Join an array of items into a string separated by the given argument
-function join() { local IFS="$1"; shift; echo "$*"; }
-
-# Helper function - added by Jeremy Sarda
-# Add the suffix for the current day. (Damn you, English!)
-function daySuffix() {
-    if [ "x`date +%-d | cut -c2`x" = "xx" ]; then
-        DayNum=`date +%-d`
-    else
-        DayNum=`date +%-d | cut -c2`
-    fi
-	
-    qualifier=`date +%-d`
-    case $DayNum in
-    0 )
-      echo -n "th" ;;
-    1 )
-      if [ "$qualifier" = "11" ]; then
-        echo -n "th"
-      else
-        echo -n "st"
-      fi ;;
-    2 )
-      if [ "$qualifier" = "12" ]; then
-        echo -n "th"
-      else
-        echo -n "nd"
-      fi ;;
-    3 )
-      if [ "$qualifier" = "13" ]; then
-        echo -n "th"
-      else
-        echo -n "rd"
-      fi ;;
-    [4-9] )
-      echo -n "th" ;;
-    * )
-      return 1 ;;
-    esac
-}
-
 # Given a directory path, truncate it according to the settings for
 # `truncate_from_right`
 function truncatePathFromRight() {

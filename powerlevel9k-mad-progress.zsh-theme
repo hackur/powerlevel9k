@@ -464,16 +464,17 @@ prompt_dir() {
    	 # Replace certain directory prefixes with icons.
    	 # Then modify the remaining path with the chosen strategy / dir length settings.
       iconify_then_truncate_from_right)
+		  
+		  
+		  # Define the initial PWD before replacing icons.
+		  stripped_pwd=$PWD
 			  
 		  # Define initial variable used to alternate over colors for each path replacement.
-		  SEGMENT_COLOR=0
+		  SEGMENT_COLOR=245
 		  SEPARATOR=$(print_icon 'LEFT_SEGMENT_SEPARATOR')
 		  wtsp=$POWERLEVEL9K_WHITESPACE_BETWEEN_LEFT_SEGMENTS
 		  wtsp=' '
-		  
-		  # stripped_pwd=$'\UE8B9'$PWD # Define root PWD with the computer icon at the beginning
-		  stripped_pwd=$PWD # Define root PWD with the computer icon at the beginning
-		  
+	  
 		  # Replace Home with "~" automatically before executing icon rules.
 		  # ICONIFIED_PWD = $(pwd | sed -e "s,^$HOME,~,")
 		  
@@ -482,17 +483,12 @@ prompt_dir() {
 		  typeset -A iconify_rules
 		  iconify_rules=(
 		  	# Keys are patterns							# Replacement Values
-  	        $'/'     									$'\UE8B9  '						#  # Computer Icon
-  	        $'/Users'     								$'\UE88D'						#  # Users Icon (multiple)
-  	        $'/Users/mac'     							$'\UE88D'						#  # Home Icon
-  	        $'/Users/mac/Downloads'     				$'\UE8B9'						#  # Computer Icon
-  	        $'/Users/mac/Movies'     					$'\UE857'						#  # Video Camera Icon
-  	        $'/Users/mac/Projects'     					$'\UE858'						#  # Thumb Tack
-  	        $'/Users/mac/Projects/1-Code Vault'     	$'\UE892'						#  # Binary Code Icon
-			
-  	        # $'/Users/mac/Projects'         			$'\UE8A2 \UE864  \UE878'		#  # Open Book with -> Arrow
-  	        # $'/Users/mac/Projects'     				$'\UE876  '						#  # Checklist
-  	        # $'/Users/mac/Projects'     				$'\UE858  '						#  # Pencil Icon
+  	        $'/Users/mac/Projects/1-Code Vault'     	$'\UE892'				#  # Binary Code Icon
+  	        $'/Users/mac'     							$'\UE88D'				#  # Home Icon
+  	        $'/Users/mac/Projects'         				$'\UE8A2 \UE864  \UE878'	#  # Open Book with -> Arrow
+  	        $'/Users/mac/Downloads'     				$'\UE8B9'				#  # Computer Icon
+  	        $'/Users/mac/Movies'     					$'\UE857'				#  # Video Camera Icon
+  	        $'/'     									$'\UE8B9'				#  # Computer Icon
   	      )
 		  
 		  
@@ -517,7 +513,7 @@ prompt_dir() {
 		  # so we can configure the number of dir labels to show in the future.
 		  match_count=0
 		  
-		  # DEBUG # echo "----- START MATCH COUNT -----" # Line 48
+		  echo "----- START MATCH COUNT -----" # Line 48
 		  
 		  # Loop over each directory in the pwd_list starting from the end of the array
 		  # (full path) and working backwards in the path to the root of the volume.
@@ -525,9 +521,6 @@ prompt_dir() {
 
   			typeset -a dir_name_to_check
 			typeset -a dir_path_to_check
-			
-			((NEXT_SEGMENT_COLOR=SEGMENT_COLOR+1))
-			if ! ((SEGMENT_COLOR)); && ((NEXT_SEGMENT_COLOR=233))
 			
 			# Build an array of directories up to the point in question.
 			dir_path=($pwd_list[0,$pwd_size-$i]);
@@ -537,66 +530,115 @@ prompt_dir() {
 			
 			# Join the remaining portion of the path to create a final string to check
 			pwd_portion_to_check="/$(join '/' $dir_path)"
+			
+			# DEBUG
+			echo "Dir #$i:\t\t[ $dir_name ]\t\t\t\t$pwd_portion_to_check"
+			
+			# Also works...
+			# pwd_portion="$(join '/' ${dir_path_to_check})"
+			# pwd_portion="/$pwd_portion"
+			# echo "Test 2... $pwd_portion"
+			  
+		  	# Continue to next value if pwd_portion is not an index in iconify_rules
+		  	# [ -z $iconify_rules["$pwd_portion"] ] && continue; # && a[0]=() && continue;
+			
+			# echo ${iconify_rule_keys}
+			
+			# (( ${+iconify_rules[/Users/mac/Projects]} )) && print defined '/Users/mac/Projects1'
+			# (( ${+iconify_rules[`print $pwd_portion_to_check`]} )) && print defined '/Users/mac/Projects2'
+			# (( ${+iconify_rules['/Users/mac/Projects']} )) && print defined '/Users/mac/Projects3'
+			# (( ${+iconify_rule_keys['/Users/mac/Projects']} )) && print defined '/Users/mac/Projects4'
+			# (( ${+iconify_rule_keys[`pwd_portion_to_check`]} )) && print defined '/Users/mac/Projects5'
 		  
 			# Check if this path exists as a key in the array
 			if (( ${+iconify_rules[`print $pwd_portion_to_check`]} )); then
-				
-				# If it's the first match, use the name and the icon as the label
-				dir_label="${iconify_rules[`print $pwd_portion_to_check`]}"
-				
-				if ! (($match_count)) && dir_label="$dir_label $dir_name "
+				echo 'Yup!!!1'
+				echo ${iconify_rules[`print $pwd_portion_to_check`]}
 				
 				# Define the start of the path segment.
-				local before_segment="%k%f%F{white}%K{$SEGMENT_COLOR}" # FG:white BG:$SEGMENT_COLOR 
+				local before_segment=$(echo -n "%k%f%F{white}%K{$SEGMENT_COLOR}") # FG:white BG:$SEGMENT_COLOR 
 				
 				# End segment colorizing & make the separator's fg color the same color as the preceding bg color
-				local path_separator="%k%f%F{$NEXT_SEGMENT_COLOR}%K{$SEGMENT_COLOR}$SEPARATOR%f%F{white}"
+				local path_separator=$(echo -n "%k%f%F{$SEGMENT_COLOR}%K{$NEXT_SEGMENT_COLOR}$SEPARATOR")
+				# separator=$(echo -n "%k%f%F{$SEGMENT_COLOR}%K{$NEXT_SEGMENT_COLOR}$(print_icon 'LEFT_SEGMENT_SEPARATOR') %k%f%F{white}%K{black} FG:$SEGMENT_COLOR BG:$NEXT_SEGMENT_COLOR
 				
-				# Create the final colorized and separated segment using the appropriate label.
-				local iconified_segment="$before_segment $dir_label $path_separator "
+				local iconified_segment=" $before_segment $iconify_rules[$k] $path_separator"
 				
-				# Add the iconified segment to the appropriate area of the PWD.
-			  	stripped_pwd=$(echo -n $stripped_pwd | sed -e "s,$dir_name/,$iconified_segment,")
-
-				# DEBUG
-				# DEBUG # echo "*Matched* Dir #$i:\t\t[ $stripped_pwd %k%f ]\t\t\t\t$pwd_portion_to_check"
-
-				# DEBUG # echo "SEGMENT_COLOR: $SEGMENT_COLOR"
-			
-				if ((SEGMENT_COLOR)); && ((SEGMENT_COLOR=match_count+232))
-
-				((match_count++)) # Increment the total number of matches
+			  	stripped_pwd=$(echo -n $stripped_pwd | sed -e "s,/$dir_name/,$iconified_segment,")
+				
 			else
-				
-				# # Define the start of the path segment.
-				# local before_segment=$(echo -n "%k%f%F{white}%K{$SEGMENT_COLOR}") # FG:white BG:$SEGMENT_COLOR
-				#
-				# # End segment colorizing & make the separator's fg color the same color as the preceding bg color
-				# local path_separator=$(echo -n "%k%f%F{$SEGMENT_COLOR}%K{$NEXT_SEGMENT_COLOR}$SEPARATOR")
-				#
-				# # Create the final colorized and separated segment using the appropriate label.
-				# local iconified_segment="$before_segment $dir_name $path_separator%f%F{white} "
-
-				# Create the final colorized and separated segment using the appropriate label.
-				local iconified_segment="$before_segment$dir_name$path_separator%f%F{white}"
-				
-				# Add the iconified segment to the appropriate area of the PWD.
-			  	stripped_pwd=$(echo -n $stripped_pwd | sed -e "s,$dir_name,$iconified_segment,")
-				
-				# DEBUG # echo "!matched  Dir #$i:\t\t[ $dir_label ]\t\t\t\t$pwd_portion_to_check"
-			
-				if ((SEGMENT_COLOR)); && ((SEGMENT_COLOR=match_count+232))
+				continue
 			fi
+		  
+		  	# echo "Matched! --> $iconify_rules[$pwd_portion]"
 			
+			# Increment the total number of matches
+			((match_count++))
 		  }
 	  
 		  # Return the total number of matches
-		  # DEBUG # echo "-----------------------------"
-	  	  # DEBUG # echo "Total Matches: $match_count"
-		  # DEBUG # echo "------ END MATCH COUNT ------"
+		  echo "-----------------------------"
+	  	  echo "Total Matches: $match_count"
+		  echo "------ END MATCH COUNT ------"
 		  
-		  current_path="%k%f%F{white}%K{black}$stripped_pwd"
 		  
+		  current_path="$stripped_pwd"
+		  continue;
+		  
+		  
+		  
+		  
+		  
+		  # Loop over each element in the associative array.
+		  for k in "${(@k)iconify_rules}"; do
+			
+			# Look for a pattern matching $key.
+			if [[ "$stripped_pwd" =~ "$k" ]]; then
+				# echo "START ----------------"
+				# echo $SEGMENT_COLOR
+				# echo $NEXT_SEGMENT_COLOR
+				# echo $stripped_pwd
+				# echo "-"
+				
+				
+				
+				
+				
+				
+				# Define the start of the path segment.
+				before_segment=$(echo -n "%k%f%F{white}%K{$SEGMENT_COLOR}") # FG:white BG:$SEGMENT_COLOR 
+				
+				# End segment colorizing & make the separator's fg color the same color as the preceding bg color
+				path_separator=$(echo -n "%k%f%F{$SEGMENT_COLOR}%K{$NEXT_SEGMENT_COLOR}$SEPARATOR")
+				# separator=$(echo -n "%k%f%F{$SEGMENT_COLOR}%K{$NEXT_SEGMENT_COLOR}$(print_icon 'LEFT_SEGMENT_SEPARATOR') %k%f%F{white}%K{black} FG:$SEGMENT_COLOR BG:$NEXT_SEGMENT_COLOR
+				
+				iconified_segment=" $before_segment $iconify_rules[$k] $path_separator"
+				
+			  	stripped_pwd=$(echo -n $stripped_pwd | sed -e "s,$k,$iconified_segment,")
+
+				((NEXT_SEGMENT_COLOR--))
+				((SEGMENT_COLOR--))
+				
+				
+				
+				
+				
+				
+				# echo "-"
+				# echo $SEGMENT_COLOR
+				# echo $NEXT_SEGMENT_COLOR
+				# echo $stripped_pwd
+				# echo "END ------------------"
+			fi
+			
+		  done
+		  
+		  # Return the new path representation.
+      	  current_path="$stripped_pwd"
+		  
+		  
+		  # Old
+      	  # current_path=$(truncatePathFromRight $(pwd | sed -e "s,^$HOME,~,") )
 	  ;;
 	  
       # iconify_then_truncate_from_right)
@@ -654,18 +696,15 @@ prompt_dir() {
 
   fi
   
-  current_path=$pwd
+
   local current_icon=''
   if [[ $(print -P "%~") == '~' ]]; then
-    "$1_prompt_segment" "$0_HOME" "$2" "blue" "$DEFAULT_COLOR" "$current_path" 'HOME_ICON'
-    "$1_prompt_segment" "$0_HOME" "$2" "blue" "$DEFAULT_COLOR" "$current_path" 'HOME_ICON'
     "$1_prompt_segment" "$0_HOME" "$2" "blue" "$DEFAULT_COLOR" "$current_path" 'HOME_ICON'
   elif [[ $(print -P "%~") == '~'* ]]; then
     "$1_prompt_segment" "$0_HOME_SUBFOLDER" "$2" "blue" "$DEFAULT_COLOR" "$current_path" 'HOME_SUB_ICON'
   else
     "$1_prompt_segment" "$0_DEFAULT" "$2" "blue" "$DEFAULT_COLOR" "$current_path" 'FOLDER_ICON'
   fi
-  
 }
 
 # Docker machine

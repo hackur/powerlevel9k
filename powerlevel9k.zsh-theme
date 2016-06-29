@@ -481,18 +481,18 @@ prompt_dir() {
 	  
 		  typeset -A iconify_rules
 		  iconify_rules=(
-		  	# Keys are patterns							# Replacement Values
-  	        $'/'     									$'\UE8B9  '						#  # Computer Icon
-  	        $'/Users'     								$'\UE88D'						#  # Users Icon (multiple)
-  	        $'/Users/mac'     							$'\UE88D'						#  # Home Icon
-  	        $'/Users/mac/Downloads'     				$'\UE8B9'						#  # Computer Icon
-  	        $'/Users/mac/Movies'     					$'\UE857'						#  # Video Camera Icon
-  	        $'/Users/mac/Projects'     					$'\UE858'						#  # Thumb Tack
-  	        $'/Users/mac/Projects/1-Code Vault'     	$'\UE892'						#  # Binary Code Icon
+		  			# Keys are patterns										# Replacement Values
+  	        $'/'     															$'\UE8B9  '						#  # Computer Icon
+  	        $'/Users'     												$'\UE88D'							#  # Users Icon (multiple)
+  	        $'/Users/mac'     										$'\UE88D'							#  # Home Icon
+  	        $'/Users/mac/Downloads'     					$'\UE8B9'							#  # Computer Icon
+  	        $'/Users/mac/Movies'     							$'\UE857'							#  # Video Camera Icon
+  	        $'/Users/mac/Projects'     						$'\UE858'							#  # Thumb Tack
+  	        $'/Users/mac/Projects/1-Code Vault' 	$'\UE892'							#  # Binary Code Icon
 			
   	        # $'/Users/mac/Projects'         			$'\UE8A2 \UE864  \UE878'		#  # Open Book with -> Arrow
-  	        # $'/Users/mac/Projects'     				$'\UE876  '						#  # Checklist
-  	        # $'/Users/mac/Projects'     				$'\UE858  '						#  # Pencil Icon
+  	        # $'/Users/mac/Projects'     					$'\UE876  '									#  # Checklist
+  	        # $'/Users/mac/Projects'     					$'\UE858  '									#  # Pencil Icon
   	      )
 		  
 		  
@@ -507,7 +507,7 @@ prompt_dir() {
 		  iconify_rule_values=("${(@v)iconify_rules}")
 		  
 		  # Split pwd into an array of directory names
-		  pwd_list=(${(s:/:)${PWD}});pwd_size=${#pwd_list}
+		  pwd_list=(${(s:/:)${PWD}})
 		  
 		  # Count the total number of directories in the path
 		  pwd_size=${#pwd_list}
@@ -523,79 +523,101 @@ prompt_dir() {
 		  # (full path) and working backwards in the path to the root of the volume.
 		  for ((i=0; i <= $pwd_size; i++)) {
 
-  			typeset -a dir_name_to_check
-			typeset -a dir_path_to_check
+	  		typeset -a dir_name_to_check
+				typeset -a dir_path_to_check
 			
-			((NEXT_SEGMENT_COLOR=SEGMENT_COLOR+1))
-			if ! ((SEGMENT_COLOR)); && ((NEXT_SEGMENT_COLOR=233))
+				((NEXT_SEGMENT_COLOR=SEGMENT_COLOR+1))
 			
-			# Build an array of directories up to the point in question.
-			dir_path=($pwd_list[0,$pwd_size-$i]);
+				if ! ((SEGMENT_COLOR)); && ((NEXT_SEGMENT_COLOR=233))
 			
-  			# The name of the directory in question.
-			dir_name=($dir_path[${#dir_path},-1]);
+				# Build an array of directories up to the point in question.
+				dir_path=($pwd_list[0,$pwd_size-$i]);
 			
-			# Join the remaining portion of the path to create a final string to check
-			pwd_portion_to_check="/$(join '/' $dir_path)"
+	  			# The name of the directory in question.
+				dir_name=($dir_path[${#dir_path},-1]);
+			
+				# Join the remaining portion of the path to create a final string to check
+				pwd_portion_to_check="/$(join '/' $dir_path)"
 		  
-			# Check if this path exists as a key in the array
-			if (( ${+iconify_rules[`print $pwd_portion_to_check`]} )); then
+				# Check if this path exists as a key in the array
+				if (( ${+iconify_rules[`print $pwd_portion_to_check`]} )); then
 				
-				# If it's the first match, use the name and the icon as the label
-				dir_label="${iconify_rules[`print $pwd_portion_to_check`]}"
+					# If it's the first match, use the name and the icon as the label
+					dir_label="${iconify_rules[`print $pwd_portion_to_check`]}"
 				
-				if ! (($match_count)) && dir_label="$dir_label $dir_name "
+					if ! (($match_count)) && dir_label="$dir_label $dir_name "
 				
-				# Define the start of the path segment.
-				local before_segment="%k%f%F{white}%K{$SEGMENT_COLOR}" # FG:white BG:$SEGMENT_COLOR 
+					# Define the start of the path segment.
+					local before_segment="%k%f%F{white}%K{$SEGMENT_COLOR}" # FG:white BG:$SEGMENT_COLOR 
 				
-				# End segment colorizing & make the separator's fg color the same color as the preceding bg color
-				local path_separator="%k%f%F{$NEXT_SEGMENT_COLOR}%K{$SEGMENT_COLOR}$SEPARATOR%f%F{white}"
+					# End segment colorizing & make the separator's fg color the same color as the preceding bg color
+					local path_separator="%k%f%F{$NEXT_SEGMENT_COLOR}%K{$SEGMENT_COLOR}$SEPARATOR%f%F{white}"
 				
-				# Create the final colorized and separated segment using the appropriate label.
-				local iconified_segment="$before_segment $dir_label $path_separator "
+					# Create the final colorized and separated segment using the appropriate label.
+					local iconified_segment="$before_segment $dir_label $path_separator "
 				
-				# Add the iconified segment to the appropriate area of the PWD.
-			  	stripped_pwd=$(echo -n $stripped_pwd | sed -e "s,$dir_name/,$iconified_segment,")
+					# Add the iconified segment to the appropriate area of the PWD.
+				  	stripped_pwd=$(echo -n $stripped_pwd | sed -e "s,$dir_name/,$iconified_segment,")
 
-				# DEBUG
-				# DEBUG # echo "*Matched* Dir #$i:\t\t[ $stripped_pwd %k%f ]\t\t\t\t$pwd_portion_to_check"
+					# DEBUG
+					# DEBUG # echo "*Matched* Dir #$i:\t\t[ $stripped_pwd %k%f ]\t\t\t\t$pwd_portion_to_check"
 
-				# DEBUG # echo "SEGMENT_COLOR: $SEGMENT_COLOR"
+					# DEBUG # echo "SEGMENT_COLOR: $SEGMENT_COLOR"
 			
-				if ((SEGMENT_COLOR)); && ((SEGMENT_COLOR=match_count+232))
+					if ((SEGMENT_COLOR)); && ((SEGMENT_COLOR=match_count+232))
 
-				((match_count++)) # Increment the total number of matches
-			else
+					((match_count++)) # Increment the total number of matches
 				
-				# # Define the start of the path segment.
-				# local before_segment=$(echo -n "%k%f%F{white}%K{$SEGMENT_COLOR}") # FG:white BG:$SEGMENT_COLOR
-				#
-				# # End segment colorizing & make the separator's fg color the same color as the preceding bg color
-				# local path_separator=$(echo -n "%k%f%F{$SEGMENT_COLOR}%K{$NEXT_SEGMENT_COLOR}$SEPARATOR")
-				#
-				# # Create the final colorized and separated segment using the appropriate label.
-				# local iconified_segment="$before_segment $dir_name $path_separator%f%F{white} "
+					# Begin a left prompt segment
+					# Takes four arguments:
+					#   * $1: Name of the function that was orginally invoked (mandatory).
+					#         Necessary, to make the dynamic color-overwrite mechanism work.
+					#   * $2: The array index of the current segment
+					#   * $3: Background color
+					#   * $4: Foreground color
+					#   * $5: The segment content
+					#   * $6: An identifying icon (must be a key of the icons array)
+					# The latter three can be omitted,
 
-				# Create the final colorized and separated segment using the appropriate label.
-				local iconified_segment="$before_segment$dir_name$path_separator%f%F{white}"
-				
-				# Add the iconified segment to the appropriate area of the PWD.
-			  	stripped_pwd=$(echo -n $stripped_pwd | sed -e "s,$dir_name,$iconified_segment,")
-				
-				# DEBUG # echo "!matched  Dir #$i:\t\t[ $dir_label ]\t\t\t\t$pwd_portion_to_check"
-			
-				if ((SEGMENT_COLOR)); && ((SEGMENT_COLOR=match_count+232))
-			fi
-			
-		  }
 	  
-		  # Return the total number of matches
-		  # DEBUG # echo "-----------------------------"
-	  	  # DEBUG # echo "Total Matches: $match_count"
-		  # DEBUG # echo "------ END MATCH COUNT ------"
+				  # Return the total number of matches
+				  # DEBUG # echo "-----------------------------"
+			  	  # DEBUG # echo "Total Matches: $match_count"
+				  # DEBUG # echo "------ END MATCH COUNT ------"
 		  
-		  current_path="%k%f%F{white}%K{black}$stripped_pwd"
+				  # current_path="%k%f%F{white}%K{black}$stripped_pwd"
+						# echo '$1: '$1
+						# echo '$0: '$0
+						# echo '$2: '$2
+						# echo '$dir_label: '
+						"$1_prompt_segment" "$0_DEFAULT" "$2" "blue" "$DEFAULT_COLOR" "$dir_label" 'FOLDER_ICON'
+				
+				else
+				
+					# # Define the start of the path segment.
+					# local before_segment=$(echo -n "%k%f%F{white}%K{$SEGMENT_COLOR}") # FG:white BG:$SEGMENT_COLOR
+					#
+					# # End segment colorizing & make the separator's fg color the same color as the preceding bg color
+					# local path_separator=$(echo -n "%k%f%F{$SEGMENT_COLOR}%K{$NEXT_SEGMENT_COLOR}$SEPARATOR")
+					#
+					# # Create the final colorized and separated segment using the appropriate label.
+					# local iconified_segment="$before_segment $dir_name $path_separator%f%F{white} "
+
+					# Create the final colorized and separated segment using the appropriate label.
+					local iconified_segment="$before_segment$dir_name$path_separator%f%F{white}"
+				
+					# Add the iconified segment to the appropriate area of the PWD.
+				  	stripped_pwd=$(echo -n $stripped_pwd | sed -e "s,$dir_name,$iconified_segment,")
+				
+					# DEBUG # echo "!matched  Dir #$i:\t\t[ $dir_label ]\t\t\t\t$pwd_portion_to_check"
+			
+					if ((SEGMENT_COLOR)); && ((SEGMENT_COLOR=match_count+232))
+
+					# "$1_prompt_segment" "$0_DEFAULT" "$2" "blue" "$DEFAULT_COLOR" "$dir_label" 'FOLDER_ICON'
+					
+				fi
+			
+		  } # End For Loop
 		  
 	  ;;
 	  
@@ -604,67 +626,69 @@ prompt_dir() {
       # ;;
 	  
    	 # END -- ICONIFY STRATEGIES - Written by Jeremy Sarda
-
-      truncate_middle)
-        current_path=$(pwd | sed -e "s,^$HOME,~," | sed $SED_EXTENDED_REGEX_PARAMETER "s/([^/]{$POWERLEVEL9K_SHORTEN_DIR_LENGTH})[^/]+([^/]{$POWERLEVEL9K_SHORTEN_DIR_LENGTH})\//\1$POWERLEVEL9K_SHORTEN_DELIMITER\2\//g")
-      ;;
-      truncate_from_right)
-        current_path=$(truncatePathFromRight $(pwd | sed -e "s,^$HOME,~,") )
-      ;;
-      truncate_with_package_name)
-        local name repo_path package_path current_dir zero
-
-        # Get the path of the Git repo, which should have the package.json file
-        if repo_path=$(git rev-parse --git-dir 2>/dev/null); then
-          if [[ "$repo_path" == ".git" ]]; then
-            # If the current path is the root of the project, then the package path is
-            # the current directory and we don't want to append anything to represent
-            # the path to a subdirectory
-            package_path="."
-            subdirectory_path=""
-          else
-            # If the current path is something else, get the path to the package.json
-            # file by finding the repo path and removing the '.git` from the path
-            package_path=${repo_path:0:-4}
-            zero='%([BSUbfksu]|([FB]|){*})'
-            current_dir=$(pwd)
-            # Then, find the length of the package_path string, and save the
-            # subdirectory path as a substring of the current directory's path from 0
-            # to the length of the package path's string
-            subdirectory_path=$(truncatePathFromRight "/${current_dir:${#${(S%%)package_path//$~zero/}}}")
-          fi
-        fi
-
-        # Parse the 'name' from the package.json; if there are any problems, just
-        # print the file path
-        if name=$( cat "$package_path/package.json" 2> /dev/null | grep "\"name\""); then
-          name=$(echo $name | awk -F ':' '{print $2}' | awk -F '"' '{print $2}')
-
-          # Instead of printing out the full path, print out the name of the package
-          # from the package.json and append the current subdirectory
-          current_path="`echo $name | tr -d '"'`$subdirectory_path"
-        else
-          current_path=$(truncatePathFromRight $(pwd | sed -e "s,^$HOME,~,") )
-        fi
-      ;;
+		 
+		 
+		 
+		 
+  #
+  #     truncate_middle)
+  #       current_path=$(pwd | sed -e "s,^$HOME,~," | sed $SED_EXTENDED_REGEX_PARAMETER "s/([^/]{$POWERLEVEL9K_SHORTEN_DIR_LENGTH})[^/]+([^/]{$POWERLEVEL9K_SHORTEN_DIR_LENGTH})\//\1$POWERLEVEL9K_SHORTEN_DELIMITER\2\//g")
+  #     ;;
+  #     truncate_from_right)
+  #       current_path=$(truncatePathFromRight $(pwd | sed -e "s,^$HOME,~,") )
+  #     ;;
+  #     truncate_with_package_name)
+  #       local name repo_path package_path current_dir zero
+  #
+  #       # Get the path of the Git repo, which should have the package.json file
+  #       if repo_path=$(git rev-parse --git-dir 2>/dev/null); then
+  #         if [[ "$repo_path" == ".git" ]]; then
+  #           # If the current path is the root of the project, then the package path is
+  #           # the current directory and we don't want to append anything to represent
+  #           # the path to a subdirectory
+  #           package_path="."
+  #           subdirectory_path=""
+  #         else
+  #           # If the current path is something else, get the path to the package.json
+  #           # file by finding the repo path and removing the '.git` from the path
+  #           package_path=${repo_path:0:-4}
+  #           zero='%([BSUbfksu]|([FB]|){*})'
+  #           current_dir=$(pwd)
+  #           # Then, find the length of the package_path string, and save the
+  #           # subdirectory path as a substring of the current directory's path from 0
+  #           # to the length of the package path's string
+  #           subdirectory_path=$(truncatePathFromRight "/${current_dir:${#${(S%%)package_path//$~zero/}}}")
+  #         fi
+  #       fi
+  #
+  #       # Parse the 'name' from the package.json; if there are any problems, just
+  #       # print the file path
+  #       if name=$( cat "$package_path/package.json" 2> /dev/null | grep "\"name\""); then
+  #         name=$(echo $name | awk -F ':' '{print $2}' | awk -F '"' '{print $2}')
+  #
+  #         # Instead of printing out the full path, print out the name of the package
+  #         # from the package.json and append the current subdirectory
+  #         current_path="`echo $name | tr -d '"'`$subdirectory_path"
+  #       else
+  #         current_path=$(truncatePathFromRight $(pwd | sed -e "s,^$HOME,~,") )
+  #       fi
+  #     ;;
       *)
         current_path="%$((POWERLEVEL9K_SHORTEN_DIR_LENGTH+1))(c:$POWERLEVEL9K_SHORTEN_DELIMITER/:)%${POWERLEVEL9K_SHORTEN_DIR_LENGTH}c"
       ;;
     esac
-
-  fi
-  
-  current_path=$pwd
-  local current_icon=''
-  if [[ $(print -P "%~") == '~' ]]; then
-    "$1_prompt_segment" "$0_HOME" "$2" "blue" "$DEFAULT_COLOR" "$current_path" 'HOME_ICON'
-    "$1_prompt_segment" "$0_HOME" "$2" "blue" "$DEFAULT_COLOR" "$current_path" 'HOME_ICON'
-    "$1_prompt_segment" "$0_HOME" "$2" "blue" "$DEFAULT_COLOR" "$current_path" 'HOME_ICON'
-  elif [[ $(print -P "%~") == '~'* ]]; then
-    "$1_prompt_segment" "$0_HOME_SUBFOLDER" "$2" "blue" "$DEFAULT_COLOR" "$current_path" 'HOME_SUB_ICON'
-  else
-    "$1_prompt_segment" "$0_DEFAULT" "$2" "blue" "$DEFAULT_COLOR" "$current_path" 'FOLDER_ICON'
-  fi
+  #
+	fi
+  #
+  # current_path=$pwd
+  # local current_icon=''
+  # if [[ $(print -P "%~") == '~' ]]; then
+  #   "$1_prompt_segment" "$0_HOME" "$2" "blue" "$DEFAULT_COLOR" "$current_path" 'HOME_ICON'
+  # elif [[ $(print -P "%~") == '~'* ]]; then
+  #   "$1_prompt_segment" "$0_HOME_SUBFOLDER" "$2" "blue" "$DEFAULT_COLOR" "$current_path" 'HOME_SUB_ICON'
+  # else
+  #   "$1_prompt_segment" "$0_DEFAULT" "$2" "blue" "$DEFAULT_COLOR" "$current_path" 'FOLDER_ICON'
+  # fi
   
 }
 
@@ -1191,7 +1215,7 @@ function zle-keymap-select {
 
 powerlevel9k_init() {
   # Display a warning if the terminal does not support 256 colors
-  local term_colors
+  local term_colors``
   term_colors=$(echotc Co)
   if (( term_colors < 256 )); then
     print -P "%F{red}WARNING!%f Your terminal appears to support less than 256 colors!"

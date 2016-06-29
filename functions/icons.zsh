@@ -20,8 +20,8 @@ case $POWERLEVEL9K_MODE in
     # Set the right locale to protect special characters
     local LC_ALL="" LC_CTYPE="en_US.UTF-8"
     icons=(
-      LEFT_SEGMENT_SEPARATOR         $'\UE0B0'              # 
-      RIGHT_SEGMENT_SEPARATOR        $'\UE0B2'              # 
+      LEFT_SEGMENT_SEPARATOR         $'\UE0B0'              #  $'\UE0B0' 
+      RIGHT_SEGMENT_SEPARATOR        $'\UE0B2'              #  $'\UE0B2' 
       LEFT_SEGMENT_END_SEPARATOR     ' '                    # Whitespace
       LEFT_SUBSEGMENT_SEPARATOR      $'\UE0B1'              # 
       RIGHT_SUBSEGMENT_SEPARATOR     $'\UE0B3'              # 
@@ -189,7 +189,8 @@ case $POWERLEVEL9K_MODE in
   'compatible')
     # Set the right locale to protect special characters
     local LC_ALL="" LC_CTYPE="en_US.UTF-8"
-    icons[LEFT_SEGMENT_SEPARATOR]=$'\u2B80'                 # ⮀
+    icons[LEFT_SEGMENT_SEPARATOR]=$'\u2B82'                 # ⮀
+    # icons[LEFT_SEGMENT_SEPARATOR]=$'\u2B80'               # ⮀\u2B82
     icons[RIGHT_SEGMENT_SEPARATOR]=$'\u2B82'                # ⮂
     icons[VCS_BRANCH_ICON]='@'
   ;;
